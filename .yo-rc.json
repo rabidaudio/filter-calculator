@@ -1,0 +1,8 @@
+{
+    "generator-svalter": {
+        "project-type": "svelte",
+        "project-name": "filter-calculator",
+        "support-preprocessors": ["typescript"],
+        "css-reset": "normalize"
+    }
+}

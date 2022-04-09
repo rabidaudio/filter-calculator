@@ -1,0 +1,34 @@
+{
+  "name": "filter-calculator",
+  "version": "1.0.0",
+  "scripts": {
+    "build": "rollup -c",
+    "dev": "rollup -c -w",
+    "start": "sirv public",
+    "validate": "svelte-check"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^15.0.0",
+    "@rollup/plugin-node-resolve": "^9.0.0",
+    "@rollup/plugin-typescript": "^6.0.0",
+    "@tsconfig/svelte": "^1.0.10",
+    "prettier": "^2.6.2",
+    "prettier-plugin-svelte": "^2.7.0",
+    "rollup": "^2.27.1",
+    "rollup-plugin-livereload": "^2.0.0",
+    "rollup-plugin-svelte": "^6.0.1",
+    "rollup-plugin-terser": "^7.0.2",
+    "svelte": "^3.25.1",
+    "svelte-check": "^1.0.44",
+    "svelte-preprocess": "4.3.0",
+    "tslib": "^2.0.1",
+    "typescript": "^4.0.3"
+  },
+  "dependencies": {
+    "sirv-cli": "^1.0.6"
+  },
+  "description": "Install the dependencies...",
+  "main": "src/main.ts",
+  "author": "Charles Julian Knight, charles@rabidaudio.com",
+  "license": "MIT"
+}
