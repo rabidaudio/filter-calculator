@@ -4,8 +4,10 @@
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "start": "sirv public",
-    "validate": "svelte-check"
+    "start": "sirv public --port 8080",
+    "validate": "svelte-check",
+    "lint": "prettier --check .",
+    "lint:fix": "prettier --write ."
   },
   "devDependencies": {
     "@rollup/plugin-commonjs": "^15.0.0",
@@ -27,7 +29,7 @@
   "dependencies": {
     "sirv-cli": "^1.0.6"
   },
-  "description": "Install the dependencies...",
+  "description": "Calculate coefficients and RC values for analog filters",
   "main": "src/main.ts",
   "author": "Charles Julian Knight, charles@rabidaudio.com",
   "license": "MIT"

@@ -1,7 +1,2 @@
-import autoPreprocess from 'svelte-preprocess';
-
-export const preprocess = function (dev) {
-    return autoPreprocess({
-        sourcemap: dev,
-    });
-};
+const sveltePreprocess = require('svelte-preprocess')
+module.exports.preprocess = sveltePreprocess()
