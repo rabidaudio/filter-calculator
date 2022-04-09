@@ -1,10 +1,10 @@
-import svelte from 'rollup-plugin-svelte'
-import resolve from '@rollup/plugin-node-resolve'
-import commonjs from '@rollup/plugin-commonjs'
-import livereload from 'rollup-plugin-livereload'
-import { terser } from 'rollup-plugin-terser'
-import typescript from '@rollup/plugin-typescript'
-import * as preprocess from './svelte.config.js'
+const svelte = require('rollup-plugin-svelte')
+const resolve = require('@rollup/plugin-node-resolve').default
+const commonjs = require('@rollup/plugin-commonjs')
+const livereload = require('rollup-plugin-livereload')
+const { terser } = require('rollup-plugin-terser')
+const typescript = require('@rollup/plugin-typescript')
+const { preprocess } = require('./svelte.config.js')
 const production = !process.env.ROLLUP_WATCH
 
 export default {
