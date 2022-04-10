@@ -2,14 +2,13 @@ import { compile, Complex, evaluate, isNaN, isPositive } from 'mathjs'
 import { Hertz, Ohms, Farads, ohms, Unitless, unitless } from './units'
 export type Discriminator = { r: Ohms; m: Unitless } | { c: Farads; m: Unitless }
 
-export type Params = {}
-
-export type ComponentValues = {
-  r1: Ohms
-  r2: Ohms
-  c1: Farads
-  c2: Farads
+export type Component = {
+  name: string
+  type: 'r' | 'c'
+  value: Ohms | Farads
 }
+
+export type Components = Component[]
 
 // vo/vi = z3*z4/(z1*z2 + z3*(z1+z2) + z3*z4)
 
@@ -30,25 +29,49 @@ export type ComponentValues = {
 export type TransferFunction = (f: Hertz) => Complex
 
 export interface Topology {
-  solve(q: Unitless, cutoff: Hertz, values: ComponentValues | null, changed: string)
-  compute(f0: Hertz, q: Unitless, discriminator: Discriminator): ComponentValues
-  transferFunction: (values: ComponentValues) => TransferFunction | null
+  solve(q: Unitless, cutoff: Hertz, components: Components)
+  compute(f0: Hertz, q: Unitless, discriminator: Discriminator): Components
+  transferFunction: (components: Components) => TransferFunction | null
+
+  layoutURL: string
 }
 
-export class SecondOrderLowPassSallenKey implements Topology {
-  solve(f0: Hertz, q: Unitless, values: ComponentValues | null, changed: string | null) {
+export function getCalculator(order: number, type: 'lowpass' | 'highpass' | 'bandpass'): Topology {
+  switch (order) {
+    case 2:
+      switch (type) {
+        case 'lowpass':
+          return new SecondOrderLowPassSallenKey()
+      }
+  }
+  throw new Error('unimplemented')
+}
+
+// https://upload.wikimedia.org/wikipedia/commons/3/3f/Sallen-Key_Lowpass_General.svg
+// https://upload.wikimedia.org/wikipedia/commons/7/71/Sallen-Key_Highpass_General.svg
+// https://upload.wikimedia.org/wikipedia/commons/e/ee/VCVS_Filter_Bandpass_General.svg
+
+class SecondOrderLowPassSallenKey implements Topology {
+  get layoutURL() {
+    return 'https://upload.wikimedia.org/wikipedia/commons/3/3f/Sallen-Key_Lowpass_General.svg'
+  }
+
+  solve(f0: Hertz, q: Unitless, components: Components) {
     if (!f0 || !q || isNaN(f0) || isNaN(q) || !isPositive(f0) || !isPositive(q)) {
       console.log('not solvable')
-      return values
+      return components
     }
-
-    if (Object.entries(values).length === 0) {
+    if (components.length === 0) {
       // pick some arbitrary but sensible defaults
       return this.compute(f0, q, { m: unitless(1), r: ohms('10 kohm') })
     }
     let discriminator: Discriminator
     // changed = changed || 'r1'
-    const { r1, r2, c1, c2 } = values
+    const r1 = components.find((c) => c.name === 'r1').value
+    const r2 = components.find((c) => c.name === 'r2').value
+    const c1 = components.find((c) => c.name === 'c1').value
+    const c2 = components.find((c) => c.name === 'c2').value
+
     const m: Unitless = unitless(evaluate('sqrt(r1/r2)', { r1, r2 }))
     const r: Ohms = evaluate('m*r2', { m, r2 })
     const n: Unitless = evaluate('sqrt(c1/c2)', { c1, c2 })
@@ -67,7 +90,7 @@ export class SecondOrderLowPassSallenKey implements Topology {
     return this.compute(f0, q, discriminator)
   }
 
-  compute(f0: Hertz, q: Unitless, discriminator: Discriminator): ComponentValues {
+  compute(f0: Hertz, q: Unitless, discriminator: Discriminator): Components {
     const rc = evaluate('1/(2*pi*f0)', { f0 })
     let r1, r2, r: Ohms
     let c1, c2, c: Farads
@@ -91,13 +114,20 @@ export class SecondOrderLowPassSallenKey implements Topology {
     r2 = evaluate('r / m', { r, c, m, n })
     c1 = evaluate('c * n', { r, c, m, n })
     c2 = evaluate('c / n', { r, c, m, n })
-    return { r1, r2, c1, c2 }
+    return [
+      { name: 'r1', type: 'r', value: r1 },
+      { name: 'r2', type: 'r', value: r2 },
+      { name: 'c1', type: 'c', value: c1 },
+      { name: 'c2', type: 'c', value: c2 },
+    ]
   }
 
-  transferFunction(values: ComponentValues): TransferFunction | null {
-    if (Object.entries(values).length === 0) {
+  transferFunction(components: Components): TransferFunction | null {
+    if (components.length === 0) {
       return null
     }
+
+    const values = components.reduce((v, c) => ({ ...v, [c.name]: c.value }), {})
 
     const w0 = evaluate('1/sqrt(r1*r2*c1*c2)', values).value
     const a = evaluate('((r1+r2)/(r1*r2))/c1/2', values).value

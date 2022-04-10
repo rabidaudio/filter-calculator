@@ -1,21 +1,20 @@
 <script>
   import Resonance from './Resonance.svelte'
 
-  import { SecondOrderLowPassSallenKey } from './calculator'
+  import { getCalculator } from './calculator'
   import UnitInput from './UnitInput.svelte'
   import { farads, ohms, hertz } from './units'
   import BodePlot from './BodePlot.svelte'
+  import Order from './Order.svelte'
 
+  let order = 2
+  let type = 'lowpass'
   let cutoff = hertz('1 kHz')
   let q
   // let lastChanged = 'r1'
 
-  const calculator = new SecondOrderLowPassSallenKey()
-
-  // $: results = q ? calculator.solve(cutoff, q, results, 'r1') : {}
-  $: results = q ? calculator.solve(cutoff, q, {}, 'r1') : {}
-
-  // $: console.log(results)
+  $: calculator = getCalculator(order, type)
+  $: components = q ? calculator.solve(cutoff, q, components) : []
 </script>
 
 <style>
@@ -33,23 +32,27 @@
 </style>
 
 <main>
+  <Order bind:order bind:type />
+
+  <img src="{calculator.layoutURL}" alt="schematic" />
+
   <label for="cutoff">Cut-off frequency</label>
   <UnitInput bind:value="{cutoff}" unitFn="{hertz}" name="cutoff" placeholder="1kHz" />
   <Resonance bind:q />
 
-  <label for="r1">R1</label>
-  <UnitInput name="r1" bind:value="{results.r1}" unitFn="{ohms}" />
-  <label for="r2">R2</label>
-  <UnitInput name="r2" bind:value="{results.r2}" unitFn="{ohms}" />
-  <label for="c1">C1</label>
-  <UnitInput name="c1" bind:value="{results.c1}" unitFn="{farads}" />
-  <label for="c2">C2</label>
-  <UnitInput name="c2" bind:value="{results.c2}" unitFn="{farads}" />
+  {#each components as component}
+    <label for="{component.name}">{component.name.toUpperCase()}</label>
+    <UnitInput
+      name="{component.name}"
+      bind:value="{component.value}"
+      unitFn="{component === 'r' ? ohms : farads}"
+    />
+  {/each}
 
   <!-- on:focus="{() => (lastChanged = 'r1')}"
 on:focus="{() => (lastChanged = 'r2')}"
 on:focus="{() => (lastChanged = 'c1')}"
 on:focus="{() => (lastChanged = 'c2')}" -->
 
-  <BodePlot transferFunction="{calculator.transferFunction(results)}" />
+  <BodePlot transferFunction="{calculator.transferFunction(components)}" />
 </main>
