@@ -32,12 +32,12 @@ export type TransferFunction = (f: Hertz) => Complex
 export interface Topology {
   solve(q: Unitless, cutoff: Hertz, values: ComponentValues | null, changed: string)
   compute(f0: Hertz, q: Unitless, discriminator: Discriminator): ComponentValues
-  transferFunction: (values: ComponentValues) => TransferFunction
+  transferFunction: (values: ComponentValues) => TransferFunction | null
 }
 
 export class SecondOrderLowPassSallenKey implements Topology {
   solve(f0: Hertz, q: Unitless, values: ComponentValues | null, changed: string | null) {
-    if (isNaN(f0) || isNaN(q) || !isPositive(f0) || !isPositive(q)) {
+    if (!f0 || !q || isNaN(f0) || isNaN(q) || !isPositive(f0) || !isPositive(q)) {
       console.log('not solvable')
       return values
     }
@@ -46,24 +46,24 @@ export class SecondOrderLowPassSallenKey implements Topology {
       // pick some arbitrary but sensible defaults
       return this.compute(f0, q, { m: unitless(1), r: ohms('10 kohm') })
     }
-    // return { r1: ohms('100'), r2: ohms('3'), c1: farads('5'), c2: farads('6') }
     let discriminator: Discriminator
-    changed = changed || 'r1'
+    // changed = changed || 'r1'
     const { r1, r2, c1, c2 } = values
     const m: Unitless = unitless(evaluate('sqrt(r1/r2)', { r1, r2 }))
     const r: Ohms = evaluate('m*r2', { m, r2 })
     const n: Unitless = evaluate('sqrt(c1/c2)', { c1, c2 })
     const c: Farads = evaluate('n*c2', { n, c2 })
-    switch (changed) {
-      case 'r1':
-      case 'r2':
-        discriminator = { r, m }
-        break
-      case 'c1':
-      case 'c2':
-        discriminator = { c, m }
-        break
-    }
+    discriminator = { r, m }
+    // switch (changed) {
+    //   case 'r1':
+    //   case 'r2':
+    //     discriminator = { r, m }
+    //     break
+    //   case 'c1':
+    //   case 'c2':
+    //     discriminator = { c, m }
+    //     break
+    // }
     return this.compute(f0, q, discriminator)
   }
 
@@ -94,9 +94,13 @@ export class SecondOrderLowPassSallenKey implements Topology {
     return { r1, r2, c1, c2 }
   }
 
-  transferFunction(values: ComponentValues): TransferFunction {
-    const w0 = evaluate('1/sqrt(r1*r2*c1*c2)', values)
-    const a = evaluate('((r1+r2)/(r1*r2))/c1/2', values)
+  transferFunction(values: ComponentValues): TransferFunction | null {
+    if (Object.entries(values).length === 0) {
+      return null
+    }
+
+    const w0 = evaluate('1/sqrt(r1*r2*c1*c2)', values).value
+    const a = evaluate('((r1+r2)/(r1*r2))/c1/2', values).value
     const sFunc = compile('2*pi*i*f')
     const func = compile('(w0^2)/(s^2 + 2*a*s + w0^2)')
     return (f) => {

@@ -1,5 +1,6 @@
 <script>
   import { createEventDispatcher } from 'svelte'
+
   export let unitFn
   export let value
   export let name = null
@@ -12,18 +13,40 @@
   var changing = false
   let error = null
 
-  $: if (changing) {
-    try {
-      if (displayValue) {
-        value = unitFn(displayValue)
-        error = null
+  $: try {
+    error = null
+    if (changing) {
+      // use displayValue to update value
+      const newValue = displayValue && unitFn(displayValue)
+      if (displayValue && newValue.value !== value.value) {
+        value = newValue
       }
-    } catch (e) {
-      error = `invalid: ${e.message}`
+    } else {
+      // use value to update displayValue
+      const newDisplayValue = value && value.format(formatOpts)
+      if (newDisplayValue && displayValue !== newDisplayValue) {
+        displayValue = newDisplayValue
+      }
     }
-  } else {
-    displayValue = value && value.format(formatOpts)
+  } catch (e) {
+    error = `invalid: ${e.message}`
   }
+
+  // if (value) {
+  //   if (changing) {
+  //     try {
+  //       const calc = unitFn(displayValue)
+  //       if (value != calc) {
+  //         value = calc
+  //       }
+  //       error = null
+  //     }
+  //   } else {
+  //     if (displayValue !== value.format(formatOpts)) {
+  //       displayValue = value.format(formatOpts)
+  //     }
+  //   }
+  // }
 </script>
 
 <style>
