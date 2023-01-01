@@ -29,6 +29,7 @@
   "dependencies": {
     "chart.js": "^3.7.1",
     "mathjs": "^10.4.3",
+    "newton-raphson-method": "^1.0.2",
     "sirv-cli": "^1.0.6"
   },
   "description": "Calculate coefficients and RC values for analog filters",

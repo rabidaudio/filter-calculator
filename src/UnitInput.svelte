@@ -58,17 +58,17 @@
 {#if value}
   <input
     type="text"
-    bind:value="{displayValue}"
-    on:focus="{(e) => {
+    bind:value={displayValue}
+    on:focus={(e) => {
       changing = true
       dispatch('focus', e)
-    }}"
-    on:blur="{(e) => {
+    }}
+    on:blur={(e) => {
       changing = false
       dispatch('blur', e)
-    }}"
-    name="{name}"
-    placeholder="{placeholder}"
+    }}
+    {name}
+    {placeholder}
   />
 
   {#if error}

@@ -38,5 +38,4 @@
   })
 </script>
 
-<canvas bind:this="{chartRef}" data="{data}" type="{type}" options="{options}" plugins="{plugins}">
-</canvas>
+<canvas bind:this={chartRef} {data} {type} {options} {plugins} />
